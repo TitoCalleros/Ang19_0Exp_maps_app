@@ -1,19 +1,21 @@
 import { AfterViewInit, Component, ElementRef, signal, viewChild } from '@angular/core';
-import mapboxgl from 'mapbox-gl';
+import mapboxgl, { LngLatLike } from 'mapbox-gl';
 import { environment } from '../../../environments/environment';
 import { v4 as uuidv4 } from 'uuid';
+import { DecimalPipe } from '@angular/common';
 
 mapboxgl.accessToken = environment.mapboxKey;
 
 interface Marker {
   id: string;
   mapboxMarker: mapboxgl.Marker;
+  color: string;
 }
 
 
 @Component({
   selector: 'app-markers-page',
-  imports: [],
+  imports: [DecimalPipe],
   templateUrl: './markers-page.component.html',
 })
 export class MarkersPageComponent implements AfterViewInit {
@@ -71,10 +73,30 @@ export class MarkersPageComponent implements AfterViewInit {
 
     const newMarker: Marker = {
       id: uuidv4(),
-      mapboxMarker: mapboxMarker
+      mapboxMarker: mapboxMarker,
+      color: color
     };
 
     // this.markers.set([newMarker, ...this.markers()]);
     this.markers.update(markers => [newMarker, ...markers]);
+  }
+
+  flyToMarker (lngLat: LngLatLike) {
+    if (!this.map()) return;
+
+    this.map()?.flyTo({
+      center: lngLat,
+
+    })
+  }
+
+  deleteMarket(marker: Marker) {
+    if (!this.map()) return;
+
+    const mapa = this.map()!;
+
+    marker.mapboxMarker.remove();
+
+    this.markers.update(current => current.filter(item => item.id !== marker.id));
   }
 }
